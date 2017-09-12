@@ -1,23 +1,18 @@
-const express = require('express');
+const app = require('express')();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+
 const fetch = require('isomorphic-fetch');
 
-const app = express();
+const PORT = process.env.PORT || 3001;
 
-app.set('port', process.env.PORT || 3001);
+const latitude = 45.4697;
+const longitude = -73.7449;
+const radiusKm = 10;
+const url = `https://public-api.adsbexchange.com/VirtualRadar/AircraftList.json?lat=${latitude}8&lng=${longitude}&fDstL=0&fDstU=${radiusKm}`;
 
-// Express only serves static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('client/build'));
-}
-
-app.get('/api/planes', (req, res) => {
-  const latitude = 33.43363;
-  const longitude = -112.008113;
-  const radius = 100;
-
-  const url = `https://public-api.adsbexchange.com/VirtualRadar/AircraftList.json?lat=${latitude}8&lng=${longitude}&fDstL=0&fDstU=${radius}`;
-
-  return fetch(url)
+setInterval(() => {
+  fetch(url)
     .then(
       (response) => {
         if (!response.ok) {
@@ -28,10 +23,25 @@ app.get('/api/planes', (req, res) => {
       error => console.log('Fetch Error occured:', error),
     )
     .then((json) => {
-      res.send(json);
+      console.log('emit planes');
+      io.emit('planes', json);
     });
+}, 5 * 1000);
+
+app.get('/', (req, res) => {
+  res.send('Hello World');
 });
 
-app.listen(app.get('port'), () => {
-  console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
+io.on('connection', (socket) => {
+  console.log('a user connected');
+
+  io.emit('message', 'hello user');
+
+  socket.on('disconnect', () => {
+    console.log('a user disconnected');
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`Listening on *:${PORT}`);
 });
