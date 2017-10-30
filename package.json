@@ -6,14 +6,15 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon --exec npm run babel-node -- index.js",
+    "dev": "DEBUG=overhead-api nodemon --exec npm run babel-node -- index.js",
     "lint": "eslint .",
     "babel-node": "babel-node"
   },
   "dependencies": {
+    "axios": "^0.16.2",
     "babel-core": "^6.26.0",
+    "debug": "^3.0.1",
     "express": "^4.15.4",
-    "isomorphic-fetch": "^2.2.1",
     "socket.io": "^2.0.3"
   },
   "devDependencies": {
